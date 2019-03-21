@@ -1,0 +1,66 @@
+function [x,in,sign]=blobAnalysis(a,obj,caUserInput,in)
+
+name={'Hump sign Detected','Left sign Detected','Right sign Detected','No Entry sign Detected'};
+x=a;
+sign=0;
+xx=a;
+ts=tic;
+a(:,:,1) = medfilt2(a(:,:,1), [3 3]);
+a(:,:,2) = medfilt2(a(:,:,2), [3 3]);
+a(:,:,3) = medfilt2(a(:,:,3), [3 3]);
+telapsed = toc(ts)
+[r c d]=size(a);
+check=1;
+i1=0;j1=0;
+i2=0;j2=0; 
+cc=zeros(r,c,d);
+
+ts=tic;
+cc=redobject_detection(x);
+telapsed = toc(ts)
+%%
+vv=im2bw(cc);
+BW2 = bwareaopen(vv,300);
+
+TC=bwfill(BW2,'holes');
+
+ im=im2bw(TC);
+BW=im;
+
+[B,L,N] = bwboundaries(BW);
+
+%%
+cor=0;
+ for i=1:N
+     ts=tic;
+[f c]=find(L==i); 
+lmaxc=max(c);lminc=min(c);
+lmaxf=max(f);lminf=min(f);
+imgn=x(lminf:lmaxf,lminc:lmaxc,:);
+imgn=imresize(imgn,[100 100]);
+[cor(i), E1(i)]=selectsignal(imgn);
+
+ in=in+1;
+ end
+ [x,z]=max(cor);
+ figure(1)
+ subplot(1,3,1),imshow(xx);
+ subplot(1,3,2),imshow(vv);
+ subplot(1,3,3),imshow(xx);
+ if x>0.8
+ [f c]=find(L==z); 
+lmaxc=max(c);lminc=min(c);
+lmaxf=max(f);lminf=min(f);
+
+hold on
+w=round(lmaxc-lminc);
+h=round(lmaxf-lminf);
+l=rectangle('Position',[lminc,lminf,w,h]);
+set(l, 'EdgeColor', [0, 1, 0])  ;
+hold off
+
+ telapsed = toc(ts)
+ sign=E1(z);
+ end
+end
+

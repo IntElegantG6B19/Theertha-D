@@ -1,0 +1,43 @@
+function output=redobject_detection(rgbImage)
+
+eightBit = true;
+            
+            
+    redBand = rgbImage(:, :, 1); 
+	greenBand = rgbImage(:, :, 2); 
+	blueBand = rgbImage(:, :, 3); 
+    if eightBit 
+			maxGL = 255; 
+    end 
+
+		redThresholdLow = graythresh(redBand);
+		redThresholdHigh = 255;
+		greenThresholdLow = 0;
+		greenThresholdHigh = graythresh(greenBand);
+		blueThresholdLow = 0;
+		blueThresholdHigh = graythresh(blueBand);
+		if eightBit
+			redThresholdLow = uint8(redThresholdLow * 255);
+			greenThresholdHigh = uint8(greenThresholdHigh * 255);
+			blueThresholdHigh = uint8(blueThresholdHigh * 255);
+ 		end
+
+smallestAcceptableArea = 100;
+	redMask = (redBand >= redThresholdLow) & (redBand <= redThresholdHigh);
+	greenMask = (greenBand >= greenThresholdLow) & (greenBand <= greenThresholdHigh);
+	blueMask = (blueBand >= blueThresholdLow) & (blueBand <= blueThresholdHigh);
+    redObjectsMask = uint8(redMask & greenMask & blueMask);
+	redObjectsMask = uint8(bwareaopen(redObjectsMask, smallestAcceptableArea));
+	structuringElement = strel('disk', 4);
+	redObjectsMask = imclose(redObjectsMask, structuringElement);
+	redObjectsMask = uint8(imfill(redObjectsMask, 'holes'));
+	redObjectsMask = cast(redObjectsMask, class(redBand)); 
+    maskedImageR = redObjectsMask .* redBand;
+	maskedImageG = redObjectsMask .* greenBand;
+	maskedImageB = redObjectsMask .* blueBand;
+	
+	output = cat(3, maskedImageR, maskedImageG, maskedImageB);
+	
+	
+	
+    end
